@@ -246,6 +246,11 @@ void onConnectError(TcpSocket *tcpSocket, int errorStatus)
 	if(tcpSocket == vSocket)
 	{
 		cout<<"connect to proxy server fail. ready to reconnect..."<<endl;
+#ifdef _WIN32
+		Sleep(500);
+#else
+		usleep(500000);
+#endif
 		vSocket->connectToHost(vHost, vPort);
 	}
 }
