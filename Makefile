@@ -7,15 +7,15 @@ MAKE = make
 endif
 
 all :
-	cd server && $(MAKE)
-	cd client && $(MAKE)
+	cd server && $(MAKE) SYSTEM=$(SYSTEM)
+	cd client && $(MAKE) SYSTEM=$(SYSTEM)
 
 .PHONY: clean
 clean :
-	cd server && $(MAKE) clean
-	cd client && $(MAKE) clean
+	cd server && $(MAKE) SYSTEM=$(SYSTEM) clean
+	cd client && $(MAKE) SYSTEM=$(SYSTEM) clean
 
 .PHONY: remove-lib
 remove-lib :
-	cd server && $(MAKE) remove-lib
-	cd client && $(MAKE) remove-lib
+	cd server && $(MAKE) SYSTEM=$(SYSTEM) remove-lib
+	cd client && $(MAKE) SYSTEM=$(SYSTEM) remove-lib
