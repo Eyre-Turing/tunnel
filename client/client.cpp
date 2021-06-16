@@ -351,7 +351,11 @@ void handleEvent()
 	
 	if(vSocket->connectStatus() == TCP_SOCKET_DISCONNECTED)
 	{
+#ifdef _WIN32
 		heartRest = heart*100;
+#else
+		heartRest = heart*1000;
+#endif
 	}
 	else
 	{
@@ -363,7 +367,11 @@ void handleEvent()
 		{
 			ByteArray sendMessage = "a#";
 			tellToVirtualServer(sendMessage);
+#ifdef _WIN32
 			heartRest = heart*100;
+#else
+			heartRest = heart*1000;
+#endif
 		}
 	}
 }
