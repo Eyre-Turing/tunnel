@@ -3,7 +3,7 @@
  * The call back function `Read` will exec in a subthread.
  *
  * Author: Eyre Turing.
- * Last edit: 2021-06-13 17:10.
+ * Last edit: 2021-06-16 17:06.
  */
 
 #include "tcp_socket.h"
@@ -33,6 +33,16 @@ void *TcpSocket::Thread::connectThread(void *s)
 	{
 		int errorStatus = errno;
 		fprintf(stderr, "connectThread error: %s\n", strerror(errorStatus));
+		if(tcpSocket->m_res)
+		{
+			freeaddrinfo(tcpSocket->m_res);
+			tcpSocket->m_res = NULL;
+		}
+#ifdef _WIN32
+		closesocket(tcpSocket->m_sockfd);
+#else
+		close(tcpSocket->m_sockfd);
+#endif
 		if(tcpSocket->m_onConnectError)
 		{
 			tcpSocket->m_onConnectError(tcpSocket, errorStatus);
