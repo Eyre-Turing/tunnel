@@ -292,7 +292,7 @@ void onRead(TcpSocket *tcpSocket, ByteArray data)
 			ByteArray::fromString(String::fromNumber(len), CODEC_UTF8)+"#"+data;
 		tellToVirtualClient(sendMessage);
 #ifdef _WIN32
-		Sleep(1);
+		Sleep(100);
 #else
 		usleep(1000);
 #endif
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
 	{
 		if(strcmp(argv[i], "-v")==0 || strcmp(argv[i], "--version")==0)
 		{
-			cout<<"Proxy server version: 1."<<endl;
+			cout<<"Proxy server version: 3."<<endl;
 			return 0;
 		}
 		else if(strcmp(argv[i], "-p")==0 || strcmp(argv[i], "--printMessage")==0)

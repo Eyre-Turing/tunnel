@@ -234,7 +234,7 @@ void onRead(TcpSocket *tcpSocket, ByteArray data)
 		}
 		pthread_mutex_unlock(&usersMutex);
 #ifdef _WIN32
-		Sleep(1);
+		Sleep(100);
 #else
 		usleep(1000);
 #endif
@@ -354,7 +354,7 @@ void handleEvent()
 #ifdef _WIN32
 		heartRest = heart*100;
 #else
-		heartRest = heart*1000;
+		heartRest = heart*200;
 #endif
 	}
 	else
@@ -370,7 +370,7 @@ void handleEvent()
 #ifdef _WIN32
 			heartRest = heart*100;
 #else
-			heartRest = heart*1000;
+			heartRest = heart*200;
 #endif
 		}
 	}
@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
 	{
 		if(strcmp(argv[i], "-v")==0 || strcmp(argv[i], "--version")==0)
 		{
-			cout<<"Proxy client version: 1."<<endl;
+			cout<<"Proxy client version: 3."<<endl;
 			return 0;
 		}
 		else if(strcmp(argv[i], "-p")==0 || strcmp(argv[i], "--printMessage")==0)
