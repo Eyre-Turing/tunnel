@@ -3,7 +3,7 @@
  * The call back function `Read` will exec in a subthread.
  *
  * Author: Eyre Turing.
- * Last edit: 2021-06-16 17:06.
+ * Last edit: 2021-06-23 17:47.
  */
 
 #include "tcp_socket.h"
@@ -122,9 +122,9 @@ void *TcpSocket::Thread::readThread(void *s)
 		}
 		
 #ifdef _WIN32
-		pthread_mutex_lock(&(tcpSocket->m_readWriteMutex));
+		//pthread_mutex_lock(&(tcpSocket->m_readWriteMutex));
 		size = recv(tcpSocket->m_sockfd, tcpSocket->recvBuffer, tcpSocket->recvBufferSize, 0);
-		pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
+		//pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
 		if(size > 0)
 		{
 			if(tcpSocket->m_onRead)
@@ -137,7 +137,7 @@ void *TcpSocket::Thread::readThread(void *s)
 			tcpSocket->abort();
 		}
 #else
-		pthread_mutex_lock(&(tcpSocket->m_readWriteMutex));
+		//pthread_mutex_lock(&(tcpSocket->m_readWriteMutex));
 		ioctl(tcpSocket->m_sockfd, FIONREAD, &size);
 		if(size > 0)
 		{
@@ -148,7 +148,7 @@ void *TcpSocket::Thread::readThread(void *s)
 				recvData.append(buffer, recvSize);
 				size -= recvSize;
 			}
-			pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
+			//pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
 			if(tcpSocket->m_onRead)
 			{
 				tcpSocket->m_onRead(tcpSocket, recvData);
@@ -156,7 +156,7 @@ void *TcpSocket::Thread::readThread(void *s)
 		}
 		else
 		{
-			pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
+			//pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
 			tcpSocket->abort();
 		} 
 #endif
@@ -188,7 +188,7 @@ TcpSocket::TcpSocket()
 	fprintf(stdout, "TcpSocket(%p) created as a client.\n", this);
 #endif
 
-	pthread_mutex_init(&m_readWriteMutex, NULL);
+	//pthread_mutex_init(&m_readWriteMutex, NULL);
 }
 
 TcpSocket::TcpSocket(TcpServer *server, int sockfd) : m_server(server), m_sockfd(sockfd)
@@ -212,7 +212,7 @@ TcpSocket::TcpSocket(TcpServer *server, int sockfd) : m_server(server), m_sockfd
 	fprintf(stdout, "TcpSocket(%p) created as a server(%p)\'s socket.\n", this, server);
 #endif
 
-	pthread_mutex_init(&m_readWriteMutex, NULL);
+	//pthread_mutex_init(&m_readWriteMutex, NULL);
 }
 
 TcpSocket::~TcpSocket()
@@ -233,7 +233,7 @@ TcpSocket::~TcpSocket()
 	fprintf(stdout, "TcpSocket(%p) destroyed.\n", this);
 #endif
 
-	pthread_mutex_destroy(&m_readWriteMutex);
+	//pthread_mutex_destroy(&m_readWriteMutex);
 }
 
 int TcpSocket::connectToHost(const char *addr, unsigned short port, int family)
@@ -388,9 +388,9 @@ bool TcpSocket::write(const char *data, unsigned int size)
 	{
 		size = strlen(data);
 	}
-	pthread_mutex_lock(&m_readWriteMutex);
+	//pthread_mutex_lock(&m_readWriteMutex);
 	bool result = send(m_sockfd, data, size, 0)>0;
-	pthread_mutex_unlock(&m_readWriteMutex);
+	//pthread_mutex_unlock(&m_readWriteMutex);
 	return result;
 }
 

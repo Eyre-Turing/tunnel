@@ -3,7 +3,7 @@
  * The call back function `NewConnecting` will catch tcp client connect event.
  *
  * Author: Eyre Turing.
- * Last edit: 2021-06-13 18:02.
+ * Last edit: 2021-06-23 17:47.
  */
 
 #include "tcp_server.h"
@@ -137,9 +137,9 @@ void *TcpServer::Thread::selectThread(void *s)
 						TcpSocket *tcpSocket = it->second;
 #ifdef _WIN32
 						char *recvBuffer = tcpSocket->recvBuffer;
-						pthread_mutex_lock(&(tcpSocket->m_readWriteMutex)); 
+						//pthread_mutex_lock(&(tcpSocket->m_readWriteMutex)); 
 						nread = recv(it->first, recvBuffer, tcpSocket->recvBufferSize, 0);
-						pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
+						//pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
 						if(nread > 0)
 						{
 							recvBuffer[nread] = 0;
@@ -154,7 +154,7 @@ void *TcpServer::Thread::selectThread(void *s)
 							--fd;
 						}
 #else
-						pthread_mutex_lock(&(tcpSocket->m_readWriteMutex));
+						//pthread_mutex_lock(&(tcpSocket->m_readWriteMutex));
 						ioctl(curSockfd, FIONREAD, &nread);
 						if(nread > 0)
 						{
@@ -165,7 +165,7 @@ void *TcpServer::Thread::selectThread(void *s)
 								recvData.append(readBuffer, recvSize);
 								nread -= recvSize;
 							}
-							pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
+							//pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
 							if(tcpSocket->m_onRead)
 							{
 								tcpSocket->m_onRead(tcpSocket, recvData);
@@ -173,7 +173,7 @@ void *TcpServer::Thread::selectThread(void *s)
 						}
 						else
 						{
-							pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
+							//pthread_mutex_unlock(&(tcpSocket->m_readWriteMutex));
 							tcpServer->removeClient(curSockfd);
 						}
 #endif

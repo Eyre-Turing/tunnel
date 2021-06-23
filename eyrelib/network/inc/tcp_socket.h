@@ -8,7 +8,7 @@
  * MinGW compile need -lws2_32.
  *
  * Author: Eyre Turing.
- * Last edit: 2021-06-13 17:10.
+ * Last edit: 2021-06-23 17:45.
  */
 
 #ifdef _WIN32
@@ -104,7 +104,7 @@ private:
 	
 	TcpSocket(TcpServer *server, int sockfd);
 	
-	pthread_mutex_t m_readWriteMutex;
+	//pthread_mutex_t m_readWriteMutex;
 };
 
 #endif	//TCP_SOCKET_H 
