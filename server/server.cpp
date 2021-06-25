@@ -292,7 +292,7 @@ void onRead(TcpSocket *tcpSocket, ByteArray data)
 			ByteArray::fromString(String::fromNumber(len), CODEC_UTF8)+"#"+data;
 		tellToVirtualClient(sendMessage);
 #ifdef _WIN32
-		Sleep(100);
+		Sleep(1);
 #else
 		usleep(1000);
 #endif
@@ -315,12 +315,17 @@ void handleEvent()
 			}
 			pthread_mutex_lock(&usersMutex);
 			map<String, TcpSocket *>::iterator it = users.find(m.id);
+			TcpSocket *target = NULL; 
 			if(it != users.end())
 			{
-				TcpSocket *target = it->second;
-				target->write(m.data);
+				target = it->second;
 			}
 			pthread_mutex_unlock(&usersMutex);
+			
+			if(target)
+			{
+				target->write(m.data);
+			}
 #ifdef _WIN32
 			Sleep(1);
 #else

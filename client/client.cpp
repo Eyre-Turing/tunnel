@@ -234,7 +234,7 @@ void onRead(TcpSocket *tcpSocket, ByteArray data)
 		}
 		pthread_mutex_unlock(&usersMutex);
 #ifdef _WIN32
-		Sleep(100);
+		Sleep(1);
 #else
 		usleep(1000);
 #endif
@@ -262,7 +262,7 @@ void handleEvent()
 	for(unsigned int i=0; i<len; ++i)
 	{
 		Message m = m_messages[i];
-		pthread_mutex_lock(&usersMutex);
+		
 		if(m.type == "c")
 		{
 			cout<<"new user "<<m.id<<" connected."<<endl;
@@ -302,14 +302,17 @@ void handleEvent()
 				}
 				else
 				{
+					pthread_mutex_lock(&usersMutex);
 					users[m.id] = target;
 					users_[target] = m.id;
+					pthread_mutex_unlock(&usersMutex);
 				}
 			}
 		}
 		else if(m.type == "d")
 		{
 			cout<<"user "<<m.id<<" disconnected."<<endl;
+			pthread_mutex_lock(&usersMutex);
 			map<String, TcpSocket *>::iterator it = users.find(m.id);
 			if(it != users.end())
 			{
@@ -321,6 +324,7 @@ void handleEvent()
 				}
 				users.erase(it);
 			}
+			pthread_mutex_unlock(&usersMutex);
 		}
 		else if(m.type == "m")
 		{
@@ -329,22 +333,25 @@ void handleEvent()
 				cout<<"user "<<m.id<<" send message."<<endl;
 				cout<<m.data.toString(CODEC_UTF8)<<endl;
 			}
+			pthread_mutex_lock(&usersMutex);
 			map<String, TcpSocket *>::iterator it = users.find(m.id);
+			TcpSocket *target = NULL;
 			if(it != users.end())
 			{
-				TcpSocket *target = it->second;
-				if(target)
-				{
-					target->write(m.data);
+				target = it->second;
+			}
+			pthread_mutex_unlock(&usersMutex);
+			
+			if(target)
+			{
+				target->write(m.data);
 #ifdef _WIN32
-					Sleep(1);
+				Sleep(1);
 #else
-					usleep(1000);
+				usleep(1000);
 #endif
-				}
 			}
 		}
-		pthread_mutex_unlock(&usersMutex);
 	}
 	m_messages.clear();
 	pthread_mutex_unlock(&messagesMutex);
@@ -367,6 +374,7 @@ void handleEvent()
 		{
 			ByteArray sendMessage = "a#";
 			tellToVirtualServer(sendMessage);
+			cout<<"send alive package."<<endl;
 #ifdef _WIN32
 			heartRest = heart*100;
 #else
