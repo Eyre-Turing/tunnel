@@ -1,0 +1,9 @@
+*.o
+*.dll
+*.so
+*.a
+/client/client
+/client/client.exe
+/server/server
+/server/server.exe
+*.out

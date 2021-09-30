@@ -11,10 +11,20 @@
 #include <unistd.h>
 #endif
 
+/*
+ * 添加了控制窗口支持（不支持Windows）
+ * 可以在本级目录下使用: ./control.sh 控制本服务
+ * 本代码主要添加了管理端口，可以使用管理端口关闭该服务（管理端口连接发送 任何信息 即可关闭服务 ）
+ */
+
 using namespace std;
 
 TcpServer *serverToClient = NULL;
 TcpServer *serverToUser = NULL;
+#ifndef _WIN32
+TcpServer *manager = NULL;	// 服务管理
+bool beKilled = false;	// 被管理端口叫关闭
+#endif
 
 TcpSocket *virtualClient = NULL;
 
@@ -106,7 +116,16 @@ void onNewConnecting(TcpServer *server, TcpSocket *client)
 	}
 	else
 	{
+#ifdef _WIN32
 		cout<<"unknow server is connected."<<endl;
+#else
+		if(server == manager)
+		{
+			cout<<"manager comming."<<endl;
+			client->setDisconnectedCallBack(onDisconnected);
+			client->setReadCallBack(onRead);
+		}
+#endif
 	}
 	pthread_mutex_unlock(&serverConnectMutex);
 }
@@ -125,7 +144,14 @@ void onStartSucceed(TcpServer *server)
 	}
 	else
 	{
+#ifdef _WIN32
 		cout<<"unknow server started."<<endl;
+#else
+		if(server == manager)
+		{
+			cout<<"proxy manager started."<<endl;
+		}
+#endif
 	}
 	pthread_mutex_unlock(&serverStartMutex);
 }
@@ -278,7 +304,7 @@ void onRead(TcpSocket *tcpSocket, ByteArray data)
 	{
 		messageRead(data);
 	}
-	else
+	else if (tcpSocket->server() == serverToUser)
 	{
 		char id[32];
 		sprintf(id, "%p", tcpSocket);
@@ -297,9 +323,18 @@ void onRead(TcpSocket *tcpSocket, ByteArray data)
 		usleep(1000);
 #endif
 	}
+	else
+	{
+#ifdef _WIN32
+		cout << "receive message but unknow sender." << endl;
+#else
+		cout << "be killed." << endl;
+		beKilled = true;
+#endif
+	}
 }
 
-void handleEvent()
+bool handleEvent()
 {
 	pthread_mutex_lock(&messagesMutex);
 	unsigned int len = m_messages.size();
@@ -360,6 +395,12 @@ void handleEvent()
 	}
 	m_messages.clear();
 	pthread_mutex_unlock(&messagesMutex);
+	
+#ifdef _WIN32
+	return true
+#else
+	return !beKilled;
+#endif
 }
 
 int main(int argc, char *argv[])
@@ -368,7 +409,7 @@ int main(int argc, char *argv[])
 	{
 		if(strcmp(argv[i], "-v")==0 || strcmp(argv[i], "--version")==0)
 		{
-			cout<<"Proxy server version: 3."<<endl;
+			cout<<"Proxy server version: 4."<<endl;
 			return 0;
 		}
 		else if(strcmp(argv[i], "-p")==0 || strcmp(argv[i], "--printMessage")==0)
@@ -400,8 +441,10 @@ int main(int argc, char *argv[])
 	
 	if(serverToClient->start(portForClient))
 	{
-		cout<<"virtual server start fail!"<<endl;
-		return 0;
+		//cout<<"virtual server start fail!"<<endl;
+		fprintf(stderr, "virtual server start fail!\n");
+		delete serverToClient;
+		return -1;
 	}
 	
 	serverToUser = new TcpServer();
@@ -412,19 +455,47 @@ int main(int argc, char *argv[])
 	
 	if(serverToUser->start(portForUser))
 	{
-		cout<<"proxy server start fali!"<<endl;
-		return 0;
+		//cout<<"proxy server start fail!"<<endl;
+		fprintf(stderr, "proxy server start fail!\n");
+		delete serverToClient;
+		delete serverToUser;
+		return -1;
 	}
+
+#ifndef _WIN32
+	unsigned short portForManager = config.value("listen/manager", "0").toUInt();
+
+	manager = new TcpServer();
 	
-	while(true)
+	manager->setNewConnectingCallBack(onNewConnecting);
+	manager->setStartSucceedCallBack(onStartSucceed);
+	manager->setClosedCallBack(onClosed);
+	
+	if(manager->start(portForManager))
 	{
-		handleEvent();
+		//cout << "proxy manager start fail!" << endl;
+		fprintf(stderr, "proxy manager start fail!\n");
+		delete serverToClient;
+		delete serverToUser;
+		delete manager;
+		return -1;
+	}
+#endif
+	
+	while(handleEvent())
+	{
 #ifdef _WIN32
 		Sleep(1);
 #else
 		usleep(1000);
 #endif
 	}
+	
+	delete serverToClient;
+	delete serverToUser;
+#ifndef _WIN32
+	delete manager;
+#endif
 	
 	return 0;
 }
