@@ -103,17 +103,20 @@ main() {
 
 	# 删除缓存配置文件
 	rm -f "$outini"
-	
+
 	# 停掉之前的服务
-	if { exec 8<>/dev/tcp/127.0.0.1/${manager}; } 2>/dev/null; then
+	local sockfd=$(($(echo $(ls /proc/self/fd | sort) | awk '{print $NF}')+1))
+	echo "$sockfd"
+	if { eval "exec ${sockfd}<>/dev/tcp/127.0.0.1/${manager}"; } 2>/dev/null; then
 		echo "停止之前的服务"
-		echo "q" >&8
-		exec 8<&-
-		exec 8>&-
+		eval "echo \"q\" >&${sockfd}"
+		eval "cat <&${sockfd}"	# 等待服务关闭
+		eval "exec ${sockfd}<&-"
+		eval "exec ${sockfd}>&-"
 	fi
 
 	# 启动服务
-	nohup ./server --title "${title}" &>/dev/null &
+	nohup ./server --title "${title}" &
 	
 	echo "服务启动"
 	
