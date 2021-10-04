@@ -268,6 +268,19 @@ int TcpServer::start(unsigned short port, int family, unsigned long addr, int ba
 	serverAddr.sin_family = family;
 	serverAddr.sin_addr.s_addr = htonl(addr);
 	serverAddr.sin_port = htons(port);
+
+	// 套接字关闭则立即解除端口占用
+	int reuseaddr = 1;
+	if (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0)
+	{
+#ifdef _WIN32
+		closesocket(m_sockfd);
+#else
+		close(m_sockfd);
+#endif
+		fprintf(stderr, "TcpServer(%p) set reuse addr fail!\n", this);
+		return TCP_SERVER_BIND_ERROR;
+	}
 	
 	if(bind(m_sockfd, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) != 0)
 	{
