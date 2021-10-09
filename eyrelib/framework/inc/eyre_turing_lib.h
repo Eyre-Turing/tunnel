@@ -5,5 +5,6 @@
 #include "eyre_string.h"
 #include "eyre_file.h"
 #include "ini_settings.h"
+#include "eyre_json.h"
 
 #endif	//EYRE_TURING_LIB_H

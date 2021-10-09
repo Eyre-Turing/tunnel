@@ -3,7 +3,7 @@
  * The call back function `NewConnecting` will catch tcp client connect event.
  *
  * Author: Eyre Turing.
- * Last edit: 2021-06-23 17:47.
+ * Last edit: 2021-10-09 17:47.
  */
 
 #include "tcp_server.h"
@@ -270,7 +270,7 @@ int TcpServer::start(unsigned short port, int family, unsigned long addr, int ba
 	serverAddr.sin_port = htons(port);
 
 	// 套接字关闭则立即解除端口占用
-	int reuseaddr = 1;
+	char reuseaddr = 1;
 	if (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0)
 	{
 #ifdef _WIN32
