@@ -397,7 +397,7 @@ bool handleEvent()
 	pthread_mutex_unlock(&messagesMutex);
 	
 #ifdef _WIN32
-	return true
+	return true;
 #else
 	return !beKilled;
 #endif
